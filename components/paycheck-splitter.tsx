@@ -84,7 +84,7 @@ export default function PaycheckSplitter() {
           <Input
             id="paycheck"
             type="number"
-            value={paycheck || ""}
+            value={paycheck || ''}
             onChange={(e) => setPaycheck(Number(e.target.value))}
             placeholder="Enter your paycheck amount"
           />
@@ -103,7 +103,7 @@ export default function PaycheckSplitter() {
                   <div className="flex items-center space-x-2">
                     <Input
                       type="number"
-                      value={item.amount}
+                      value={item.amount || ''}
                       onChange={(e) => updateLineItem(index, "amount", e.target.value)}
                       placeholder={item.isPercentage ? "Percentage" : "Amount"}
                       className="w-24"
@@ -144,22 +144,32 @@ export default function PaycheckSplitter() {
                   </div>
                   <div className="text-right">
                     <span>${getActualAmount(item).toFixed(2)}</span>
-                    {item.isPercentage && (
-                      <span className="text-gray-500 ml-2">({item.amount.toFixed(1)}%)</span>
-                    )}
+                    <span className="text-gray-500 ml-2">
+                      ({((getActualAmount(item) / paycheck) * 100).toFixed(1)}%)
+                    </span>
                   </div>
                 </div>
               ))}
+              <div className="flex justify-between font-semibold pt-2 border-t">
+                <span>Total</span>
+                <div className="text-right">
+                  <span>${totalAmount.toFixed(2)}</span>
+                  <span className="text-gray-500 ml-2">
+                    ({((totalAmount / paycheck) * 100).toFixed(1)}%)
+                  </span>
+                </div>
+              </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded-full bg-gray-400" />
                   <span>Unallocated</span>
                 </div>
-                <span>${(paycheck - totalAmount).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between font-semibold pt-2 border-t">
-                <span>Total</span>
-                <span>${totalAmount.toFixed(2)}</span>
+                <div className="text-right">
+                  <span>${(paycheck - totalAmount).toFixed(2)}</span>
+                  <span className="text-gray-500 ml-2">
+                    ({(((paycheck - totalAmount) / paycheck) * 100).toFixed(1)}%)
+                  </span>
+                </div>
               </div>
               {totalAmount !== paycheck && (
                 <p className="text-red-500">
