@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,9 +25,52 @@ const colors = [
   "bg-teal-500",
 ]
 
+const DEMO_DATA = {
+  paycheck: 2000,
+  items: [
+    { name: "Rent", amount: 800, isPercentage: false },
+    { name: "Groceries", amount: 300, isPercentage: false },
+    { name: "Savings", amount: 20, isPercentage: true },
+    { name: "Entertainment", amount: 200, isPercentage: false },
+  ]
+}
+
 export default function PaycheckSplitter() {
   const [paycheck, setPaycheck] = useState<number>(0)
   const [lineItems, setLineItems] = useState<LineItem[]>([])
+
+  const isDemoMode = () => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      return url.searchParams.get('demo') === 'true'
+    }
+    return false
+  }
+
+  const toggleDemoMode = () => {
+    const url = new URL(window.location.href)
+    const isDemo = url.searchParams.get('demo') === 'true'
+    
+    if (isDemo) {
+      url.searchParams.delete('demo')
+      window.history.pushState({}, '', url.toString())
+      setPaycheck(0)
+      setLineItems([])
+    } else {
+      url.searchParams.set('demo', 'true')
+      window.history.pushState({}, '', url.toString())
+      setPaycheck(DEMO_DATA.paycheck)
+      setLineItems(DEMO_DATA.items)
+    }
+  }
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('demo') === 'true') {
+      setPaycheck(DEMO_DATA.paycheck)
+      setLineItems(DEMO_DATA.items)
+    }
+  }, [])
 
   const addLineItem = () => {
     setLineItems([...lineItems, { name: "", amount: 0, isPercentage: false }])
@@ -75,8 +118,15 @@ export default function PaycheckSplitter() {
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Paycheck Splitter</CardTitle>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={toggleDemoMode}
+        >
+          {isDemoMode() ? 'Clear Demo' : 'Try Demo'}
+        </Button>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
