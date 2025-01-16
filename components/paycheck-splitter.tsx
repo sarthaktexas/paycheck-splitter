@@ -6,12 +6,23 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import SplitBar from "/split-bar"
+import SplitBar from "@/components/split-bar"
 
 interface LineItem {
   name: string
   amount: number
 }
+
+const colors = [
+  "bg-red-500",
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-yellow-500",
+  "bg-purple-500",
+  "bg-pink-500",
+  "bg-indigo-500",
+  "bg-teal-500",
+]
 
 export default function PaycheckSplitter() {
   const [paycheck, setPaycheck] = useState<number>(0)
@@ -85,12 +96,24 @@ export default function PaycheckSplitter() {
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Breakdown</h3>
               {lineItems.map((item, index) => (
-                <div key={index} className="flex justify-between">
-                  <span>{item.name}</span>
+                <div key={index} className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className={`w-4 h-4 rounded-full ${colors[index % colors.length]}`}
+                    />
+                    <span>{item.name}</span>
+                  </div>
                   <span>${item.amount.toFixed(2)}</span>
                 </div>
               ))}
-              <div className="flex justify-between font-semibold">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-gray-400" />
+                  <span>Unallocated</span>
+                </div>
+                <span>${(paycheck - totalAmount).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-semibold pt-2 border-t">
                 <span>Total</span>
                 <span>${totalAmount.toFixed(2)}</span>
               </div>

@@ -2,7 +2,7 @@ import PaycheckSplitter from "@/components/paycheck-splitter";
 
 export default function Home() {
   return (
-    <div>
+    <div className="flex justify-center items-center min-h-screen">
       <PaycheckSplitter />
     </div>
   );
