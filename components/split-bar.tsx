@@ -1,5 +1,5 @@
 interface SplitBarProps {
-  items: { name: string; amount: number }[]
+  items: { name: string; amount: number; isPercentage: boolean }[]
   totalAmount: number
   paycheck: number
 }
@@ -16,6 +16,12 @@ export default function SplitBar({ items, totalAmount, paycheck }: SplitBarProps
     "bg-teal-500",
   ]
 
+  const getActualAmount = (item: { amount: number; isPercentage: boolean }): number => {
+    return item.isPercentage 
+      ? (item.amount / 100) * paycheck 
+      : item.amount
+  }
+
   return (
     <div className="h-8 w-full bg-gray-200 rounded-full overflow-hidden">
       {items.map((item, index) => (
@@ -23,10 +29,10 @@ export default function SplitBar({ items, totalAmount, paycheck }: SplitBarProps
           key={index}
           className={`h-full ${colors[index % colors.length]}`}
           style={{
-            width: `${(item.amount / paycheck) * 100}%`,
+            width: `${(getActualAmount(item) / paycheck) * 100}%`,
             float: "left",
           }}
-          title={`${item.name}: $${item.amount.toFixed(2)}`}
+          title={`${item.name}: $${getActualAmount(item).toFixed(2)}`}
         />
       ))}
       {totalAmount < paycheck && (

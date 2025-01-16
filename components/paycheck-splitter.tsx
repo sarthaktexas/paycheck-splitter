@@ -11,6 +11,7 @@ import SplitBar from "@/components/split-bar"
 interface LineItem {
   name: string
   amount: number
+  isPercentage: boolean
 }
 
 const colors = [
@@ -29,20 +30,48 @@ export default function PaycheckSplitter() {
   const [lineItems, setLineItems] = useState<LineItem[]>([])
 
   const addLineItem = () => {
-    setLineItems([...lineItems, { name: "", amount: 0 }])
+    setLineItems([...lineItems, { name: "", amount: 0, isPercentage: false }])
   }
 
-  const updateLineItem = (index: number, field: keyof LineItem, value: string | number) => {
+  const updateLineItem = (index: number, field: keyof LineItem, value: string | number | boolean) => {
     const updatedItems = [...lineItems]
-    updatedItems[index] = { ...updatedItems[index], [field]: field === 'amount' ? Number(value) : value }
+    const item = updatedItems[index]
+
+    if (field === 'name') {
+      updatedItems[index] = { ...item, name: value as string }
+    } else if (field === 'amount') {
+      const numValue = Number(value)
+      if (item.isPercentage) {
+        updatedItems[index] = { ...item, amount: Math.min(numValue, 100) }
+      } else {
+        updatedItems[index] = { ...item, amount: Math.min(numValue, paycheck) }
+      }
+    } else if (field === 'isPercentage') {
+      const currentAmount = item.amount
+      updatedItems[index] = {
+        ...item,
+        isPercentage: value as boolean,
+        amount: value as boolean 
+          ? (currentAmount / paycheck) * 100 
+          : (currentAmount / 100) * paycheck
+      }
+    }
+    
     setLineItems(updatedItems)
+  }
+
+  // Calculate the actual amount for an item (whether it's percentage or absolute)
+  const getActualAmount = (item: LineItem): number => {
+    return item.isPercentage 
+      ? (item.amount / 100) * paycheck 
+      : item.amount
   }
 
   const removeLineItem = (index: number) => {
     setLineItems(lineItems.filter((_, i) => i !== index))
   }
 
-  const totalAmount = lineItems.reduce((sum, item) => sum + item.amount, 0)
+  const totalAmount = lineItems.reduce((sum, item) => sum + getActualAmount(item), 0)
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -71,13 +100,23 @@ export default function PaycheckSplitter() {
                     onChange={(e) => updateLineItem(index, "name", e.target.value)}
                     placeholder="Category name"
                   />
-                  <Input
-                    type="number"
-                    value={item.amount}
-                    onChange={(e) => updateLineItem(index, "amount", e.target.value)}
-                    placeholder="Amount"
-                    className="w-24"
-                  />
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      value={item.amount}
+                      onChange={(e) => updateLineItem(index, "amount", e.target.value)}
+                      placeholder={item.isPercentage ? "Percentage" : "Amount"}
+                      className="w-24"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateLineItem(index, "isPercentage", !item.isPercentage)}
+                      className="w-12"
+                    >
+                      {item.isPercentage ? "%" : "$"}
+                    </Button>
+                  </div>
                   <Button variant="ghost" size="icon" onClick={() => removeLineItem(index)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -103,7 +142,12 @@ export default function PaycheckSplitter() {
                     />
                     <span>{item.name}</span>
                   </div>
-                  <span>${item.amount.toFixed(2)}</span>
+                  <div className="text-right">
+                    <span>${getActualAmount(item).toFixed(2)}</span>
+                    {item.isPercentage && (
+                      <span className="text-gray-500 ml-2">({item.amount.toFixed(1)}%)</span>
+                    )}
+                  </div>
                 </div>
               ))}
               <div className="flex justify-between items-center">
